@@ -62,7 +62,6 @@ end
 You can either set the node attributes `node[:amazon_dns][:aws_access_key_id]` and `node[:amazon_dns][:aws_secret_access_key]`, or provide the same values with every resource call.  
 See examples above.
 
-
 # Alias records
 
 Alias records are A or AAAA records that point to S3 Website Endpoints, Elastic Load Balancers or Route 53 record sets in the same zone.  

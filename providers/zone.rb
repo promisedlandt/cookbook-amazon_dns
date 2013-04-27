@@ -13,7 +13,6 @@ action :create do
 
       if zone.description.to_s == new_resource.comment
         Chef::Log.info "Already exists, nothing to do"
-        zone_exists = true
       else
         # Updating is not supported by Amazon API. Destroying seems annoying with the zone id changes. May change in future
         Chef::Log.warn "Zone #{ domain_name } already exists, but can't update comment"
