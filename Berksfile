@@ -1,5 +1,5 @@
 site :opscode
 
-cookbook "gem_installation", github: "promisedlandt/gem_installation"
+cookbook "gem_installation", github: "promisedlandt/cookbook-gem_installation"
 
 metadata
