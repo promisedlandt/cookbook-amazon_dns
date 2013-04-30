@@ -17,6 +17,8 @@ action :create do
         # Updating is not supported by Amazon API. Destroying seems annoying with the zone id changes. May change in future
         Chef::Log.warn "Zone #{ domain_name } already exists, but can't update comment"
       end
+
+      break
     end
   end
 
