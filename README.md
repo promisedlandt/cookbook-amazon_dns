@@ -49,6 +49,17 @@ amazon_dns_record "example.com" do
   type "MX"
   value "1 aspmx.l.google.com"
 end
+
+
+# create an NS record if it doesnt exist, add new entry if it does exist.
+amazon_dns_record "nsrecord" do
+  domain "example.com"
+  addvalue "subdomain1.example.com."
+  type "NS"
+  aws_access_key_id     "ASDASDASDASD"
+  aws_secret_access_key "GSDFGSDFDFGF"
+end
+
 ```
 
 # Differences from Route53 cookbook
@@ -56,15 +67,16 @@ end
   * Ability to add zones
   * No need to specify zone_id, amazon_dns will look it up for you
   * Alias record support
+  * Ability to add to an existing record w/o overwriting it (addvalue)
 
 # Authorization
 
-You can either set the node attributes `node[:amazon_dns][:aws_access_key_id]` and `node[:amazon_dns][:aws_secret_access_key]`, or provide the same values with every resource call.  
+You can either set the node attributes `node[:amazon_dns][:aws_access_key_id]` and `node[:amazon_dns][:aws_secret_access_key]`, or provide the same values with every resource call.
 See examples above.
 
 # Alias records
 
-Alias records are A or AAAA records that point to S3 Website Endpoints, Elastic Load Balancers or Route 53 record sets in the same zone.  
+Alias records are A or AAAA records that point to S3 Website Endpoints, Elastic Load Balancers or Route 53 record sets in the same zone.
 To utilize alias records, set the `alias_target` attribute of the amazon_dns_record resource to a hash containing the keys `:dns_name` for the endpoint, and `:hosted_zone_id` for the hosted zone id.
 
 # Recipes
@@ -110,7 +122,8 @@ Attribute | Description | Type | Default
 name | Name of the dns entry, can be "subdomain" or "subdomain.example.com" | String | name
 domain | Name of the domain to add the entry to (set this or zone_id) | String |
 zone_id | Zone_id of the zone to add the entry to (set this or domain) | String |
-value | Value for the DNS record. Not needed for alias records | String, Array | 
+value | Value for the DNS record. Not needed for alias records | String, Array |
+addvalue | Cannot be used with "value" - add this to the existing record (or create new w/ this) | String, Array |
 alias_target | Targets for alias records. Hash that needs they keys `:dns_name` and `:hosted_zone_id` | Hash
 type | DNS record type | String | A
 ttl | Time to live | Integer, String | 3600
