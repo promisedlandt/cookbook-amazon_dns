@@ -1,5 +1,3 @@
-site :opscode
-
-cookbook "gem_installation", github: "promisedlandt/cookbook-gem_installation"
+source "https://supermarket.chef.io"
 
 metadata

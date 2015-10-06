@@ -1,8 +1,13 @@
 include AmazonDNS::Connection
 
 action :create_or_update do
+  value = Array(new_resource.value).compact
+  addvalue = Array(new_resource.addvalue).compact
+
   Chef::Log.fatal "Neither domain nor zone_id are set for #{ new_resource.name }, skipping" unless new_resource.domain || new_resource.zone_id
-  Chef::Log.fatal "Neither value nor alias_target are set for #{ new_resource.name }, skipping" unless new_resource.value || new_resource.alias_target
+  Chef::Log.fatal "Neither value nor addvalue nor alias_target are set for #{ new_resource.name }, skipping" if value.empty? && addvalue.empty? && new_resource.alias_target.empty?
+  raise Chef::Log.fatal "Cannot combine value and addvalue for #{ new_resource.name }. Use one or the other but not both, skipping" if value.any? && addvalue.any?
+  #^exit on this, dont be silent.
 
   zone = nil
   ttl = new_resource.ttl.to_s
@@ -31,7 +36,7 @@ action :create_or_update do
 
     record_attributes = { :name => name,
                           :type => new_resource.type,
-                          :value => Array(new_resource.value),
+                          :value => value,
                           :alias_target => new_resource.alias_target,
                           :weight => new_resource.weight,
                           :ttl => ttl }
@@ -39,6 +44,19 @@ action :create_or_update do
     Chef::Log.info "Checking if Route53 DNS record exists: #{ new_resource.name }"
 
     if record = zone.records.get(name, new_resource.type)
+      if addvalue.any? && value.empty?
+      ##if we get this far, :value is empty and :addvalue isnt.
+
+        # is the value to add a subset of the original value? if so, just keep the original value.
+        if (addvalue - Array(record.value)).empty?
+          record_attributes[:value] = Array(record.value)
+        else
+          #we want to -add- a value to the existing.
+          newvalue=Array(record.value) + addvalue
+          record_attributes[:value] = Array(newvalue)
+        end
+      end
+
       if record.ttl == record_attributes[:ttl] &&
           (Array(record.value) == record_attributes[:value] || Array(record.alias_target) == record_attributes[:alias_target])
 
@@ -49,11 +67,15 @@ action :create_or_update do
         record.modify(record_attributes)
       end
     else
+      if addvalue.any?
+        record_attributes[:value] = addvalue
+      end
+      Chef::Log.fatal "record_attributes: #{ record_attributes }"
       Chef::Log.info "Creating Route53 DNS record #{ new_resource.name }"
       zone.records.create(record_attributes)
     end
   else
-    Chef::Log.fatal "Could not find zone for #{ new_resource.name }, zones #{ dns_connection.zones.collect { |zone| zone.domain }.join(", ") }"
+    Chef::Log.fatal "Could not find zone for #{ new_resource.name }, zones #{ dns_connection.zones.collect { |existing_zone| existing_zone.domain }.join(", ") }"
   end
 
 end
